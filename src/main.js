@@ -1,8 +1,12 @@
 (function(){
 
   function releaseContainer(box){
-    if (box.xtag.container) {
-      box.xtag.container.removeAttribute('x-peekbox-container');
+    var container = box.xtag.container;
+    if (container) {
+      container.removeAttribute('x-peekbox-cover');
+      container.removeAttribute('x-peekbox-showing');
+      container.removeAttribute('x-peekbox-container');
+      if (box.xtag.coverEvent) xtag.removeEvent(container, box.xtag.coverEvent);
       box.xtag.container = null;
     }
   }
@@ -11,8 +15,16 @@
     lifecycle: {
       inserted: function(){
         releaseContainer(this);
-        if (this.parentNode) {
-          (this.xtag.container = this.parentNode).setAttribute('x-peekbox-container', '');
+        var box = this;
+        var container = box.parentNode;
+        if (container) {
+          (box.xtag.container = container).setAttribute('x-peekbox-container', '');
+          if (box.cover) {
+            container.setAttribute('x-peekbox-cover', '');
+            box.xtag.coverEvent = xtag.addEvent(container, 'tap', function(e){
+              if (box.showing && box.cover && box != e.target && !box.contains(e.target)) box.hide();
+            });
+          }
         }
       },
       removed: function(){
@@ -21,28 +33,43 @@
     },
     events: {
       transitionend: function(e){
-        if (e.target == this){
-          xtag.fireEvent(this, this.hasAttribute('x-peekbox-show') ? 'show' : 'hide');
-        }
+        if (e.target == this) xtag.fireEvent(this, this.showing ? 'show' : 'hide');
       }
     },
     accessors: {
+      showing: {
+        attribute: { boolean: true },
+        set: function(val){
+          var container = this.xtag.container;
+          if (container) {
+            val ? container.setAttribute('x-peekbox-showing', '') : container.removeAttribute('x-peekbox-showing');
+          }
+        }
+      },
       edge: {
         attribute: {},
         set: function(){
           xtag.skipTransition(this);
         }
+      },
+      cover: {
+        attribute: { boolean: true },
+        set: function(val){
+          if (this.xtag.container) {
+            val ? this.xtag.container.setAttribute('x-peekbox-cover', '') : this.xtag.container.removeAttribute('x-peekbox-cover');
+          }
+        }
       }
     },
     methods: {
       show: function(){
-        this.setAttribute('x-peekbox-show', '');
+        this.showing = true;
       },
       hide: function(){
-        this.removeAttribute('x-peekbox-show');
+        this.showing = false;
       },
       toggle: function(){
-        this.hasAttribute('x-peekbox-show') ? this.hide() : this.show();
+        this.showing = !this.showing;
       }
     }
   });

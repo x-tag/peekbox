@@ -48,7 +48,7 @@ x-peekbox[edge="bottom"] {
   transform: translate(0, 100%);
 }
 
-x-peekbox[x-peekbox-show] {
+x-peekbox[showing] {
   -webkit-transform: translate(0, 0);
   -moz-transform: translate(0, 0);
   -ms-transform: translate(0, 0);
@@ -57,4 +57,8 @@ x-peekbox[x-peekbox-show] {
 
 [x-peekbox-container]{
   overflow: hidden;
+}
+
+[x-peekbox-container][x-peekbox-cover][x-peekbox-showing] > *:not(x-peekbox){
+  pointer-events: none;
 }
