@@ -6,7 +6,7 @@
       container.removeAttribute('x-peekbox-cover');
       container.removeAttribute('x-peekbox-showing');
       container.removeAttribute('x-peekbox-container');
-      if (box.xtag.coverEvent) xtag.removeEvent(container, box.xtag.coverEvent);
+      if (box.xtag.coverEvents) xtag.removeEvents(container, box.xtag.coverEvents);
       box.xtag.container = null;
     }
   }
@@ -21,8 +21,16 @@
           (box.xtag.container = container).setAttribute('x-peekbox-container', '');
           if (box.cover) {
             container.setAttribute('x-peekbox-cover', '');
-            box.xtag.coverEvent = xtag.addEvent(container, 'tap', function(e){
-              if (box.showing && box.cover && box != e.target && !box.contains(e.target)) box.hide();
+            box.xtag.coverEvents = xtag.addEvents(container, {
+              'tapstart': function(){
+                box.xtag.skipTap = !box.showing;
+              },
+              tap: function(e){
+                if (!box.xtag.skipTap && box.showing && box.cover && box != e.target && !box.contains(e.target)) {
+                  box.hide();
+                }
+                box.xtag.skipTap = false;
+              }
             });
           }
         }
